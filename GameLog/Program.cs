@@ -50,6 +50,7 @@ using (var scope = app.Services.CreateScope())
 
     SeedData.SeedGenres(context);
 
+    SeedData.SeedPlatforms(context);
 
     // Seed games
     SeedData.SeedGames(context);

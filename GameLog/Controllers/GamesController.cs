@@ -33,6 +33,8 @@ namespace GameLog.Controllers
             var game = await _context.Games
                 .Include(g => g.GameGenres)
                     .ThenInclude(gg => gg.Genre)
+                .Include(g => g.GamePlatforms)
+                    .ThenInclude(gp => gp.Platform)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (game == null) return NotFound();
@@ -93,10 +95,10 @@ namespace GameLog.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create()
         {
-            // punimo žanrove za checkbox listu
             var vm = new GameEditViewModel
             {
-                AllGenres = await _context.Genres.OrderBy(g => g.Name).ToListAsync()
+                AllGenres = await _context.Genres.OrderBy(g => g.Name).ToListAsync(),
+                AllPlatforms = await _context.Platforms.OrderBy(p => p.Name).ToListAsync()
             };
 
             return View(vm);
@@ -111,6 +113,7 @@ namespace GameLog.Controllers
             if (!ModelState.IsValid)
             {
                 vm.AllGenres = await _context.Genres.OrderBy(g => g.Name).ToListAsync();
+                vm.AllPlatforms = await _context.Platforms.OrderBy(p => p.Name).ToListAsync();
                 return View(vm);
             }
 
@@ -127,6 +130,11 @@ namespace GameLog.Controllers
                 game.GameGenres.Add(new GameGenre { GenreId = genreId });
             }
 
+            foreach (var platformId in vm.SelectedPlatformIds.Distinct())
+            {
+                game.GamePlatforms.Add(new GamePlatform { PlatformId = platformId });
+            }
+
             _context.Games.Add(game);
             await _context.SaveChangesAsync();
 
@@ -141,6 +149,7 @@ namespace GameLog.Controllers
 
             var game = await _context.Games
                 .Include(g => g.GameGenres)
+                .Include(g => g.GamePlatforms)
                 .FirstOrDefaultAsync(g => g.Id == id);
 
             if (game == null) return NotFound();
@@ -151,8 +160,12 @@ namespace GameLog.Controllers
                 Title = game.Title,
                 ReleaseYear = game.ReleaseYear,
                 ImagePath = game.ImagePath,
+
                 SelectedGenreIds = game.GameGenres.Select(gg => gg.GenreId).ToList(),
-                AllGenres = await _context.Genres.OrderBy(g => g.Name).ToListAsync()
+                AllGenres = await _context.Genres.OrderBy(g => g.Name).ToListAsync(),
+
+                SelectedPlatformIds = game.GamePlatforms.Select(gp => gp.PlatformId).ToList(),
+                AllPlatforms = await _context.Platforms.OrderBy(p => p.Name).ToListAsync()
             };
 
             return View(vm);
@@ -169,11 +182,13 @@ namespace GameLog.Controllers
             if (!ModelState.IsValid)
             {
                 vm.AllGenres = await _context.Genres.OrderBy(g => g.Name).ToListAsync();
+                vm.AllPlatforms = await _context.Platforms.OrderBy(p => p.Name).ToListAsync();
                 return View(vm);
             }
 
             var game = await _context.Games
                 .Include(g => g.GameGenres)
+                .Include(g => g.GamePlatforms)
                 .FirstOrDefaultAsync(g => g.Id == id);
 
             if (game == null) return NotFound();
@@ -182,11 +197,18 @@ namespace GameLog.Controllers
             game.ReleaseYear = vm.ReleaseYear;
             game.ImagePath = vm.ImagePath;
 
-            // zamijeni sve postojeće žanrove
+            // replace genres
             game.GameGenres.Clear();
             foreach (var genreId in vm.SelectedGenreIds.Distinct())
             {
                 game.GameGenres.Add(new GameGenre { GameId = game.Id, GenreId = genreId });
+            }
+
+            // replace platforms
+            game.GamePlatforms.Clear();
+            foreach (var platformId in vm.SelectedPlatformIds.Distinct())
+            {
+                game.GamePlatforms.Add(new GamePlatform { GameId = game.Id, PlatformId = platformId });
             }
 
             await _context.SaveChangesAsync();
@@ -199,9 +221,7 @@ namespace GameLog.Controllers
         {
             if (id == null) return NotFound();
 
-            var game = await _context.Games
-                .FirstOrDefaultAsync(m => m.Id == id);
-
+            var game = await _context.Games.FirstOrDefaultAsync(m => m.Id == id);
             if (game == null) return NotFound();
 
             return View(game);

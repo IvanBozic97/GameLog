@@ -14,4 +14,8 @@ public class GameEditViewModel
 
     public List<int> SelectedGenreIds { get; set; } = new();
     public List<Genre> AllGenres { get; set; } = new();
+
+    public List<int> SelectedPlatformIds { get; set; } = new();
+    public List<Platform> AllPlatforms { get; set; } = new();
+
 }

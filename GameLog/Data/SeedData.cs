@@ -26,6 +26,23 @@ public static class SeedData
         context.SaveChanges();
     }
 
+    public static void SeedPlatforms(ApplicationDbContext context)
+    {
+        if (context.Platforms.Any())
+            return;
+
+        var platforms = new[]
+        {
+        "PC",
+        "PlayStation",
+        "Xbox",
+        "Nintendo Switch"
+    };
+
+        context.Platforms.AddRange(platforms.Select(p => new Platform { Name = p }));
+        context.SaveChanges();
+    }
+
     public static void SeedGames(ApplicationDbContext context)
     {
         if (context.Games.Any())

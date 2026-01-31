@@ -1,12 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using GameLog.Areas.Identity.Data;
+using GameLog.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using GameLog.Areas.Identity.Data;
-using GameLog.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace GameLog.Controllers
 {
@@ -28,20 +32,65 @@ namespace GameLog.Controllers
         // GET: Games/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var game = await _context.Games
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (game == null)
-            {
-                return NotFound();
-            }
+            var game = await _context.Games.FirstOrDefaultAsync(m => m.Id == id);
+            if (game == null) return NotFound();
 
-            return View(game);
+            var reviews = await _context.Reviews
+                .Where(r => r.GameId == game.Id)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+
+            var vm = new GameDetailsViewModel
+            {
+                Game = game,
+                Reviews = reviews
+            };
+
+            return View(vm);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> AddReview(int gameId, int rating, string? text)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Challenge();
+
+            // check if game exists
+            var gameExists = await _context.Games.AnyAsync(g => g.Id == gameId);
+            if (!gameExists) return NotFound();
+
+            // if there is already a review, update it (easier than throwing an error)
+            var existing = await _context.Reviews
+                .FirstOrDefaultAsync(r => r.GameId == gameId && r.UserId == userId);
+
+            if (existing == null)
+            {
+                var review = new Review
+                {
+                    GameId = gameId,
+                    UserId = userId,
+                    Rating = rating,
+                    Text = text,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.Reviews.Add(review);
+            }
+            else
+            {
+                existing.Rating = rating;
+                existing.Text = text;
+                existing.CreatedAt = DateTime.UtcNow;
+                _context.Reviews.Update(existing);
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Details), new { id = gameId });
+        }
+
 
         // GET: Games/Create
         public IActionResult Create()

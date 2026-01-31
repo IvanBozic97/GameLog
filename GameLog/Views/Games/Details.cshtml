@@ -1,4 +1,4 @@
-﻿@model GameLog.Models.Game
+﻿@model GameLog.Models.GameDetailsViewModel
 
 @{
     ViewData["Title"] = "Details";
@@ -11,26 +11,78 @@
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Title)
+            @Html.DisplayNameFor(model => model.Game.Title)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Title)
+            @Html.DisplayFor(model => model.Game.Title)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ReleaseYear)
+            @Html.DisplayNameFor(model => model.Game.ReleaseYear)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ReleaseYear)
+            @Html.DisplayFor(model => model.Game.ReleaseYear)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CreatedAt)
+            @Html.DisplayNameFor(model => model.Game.CreatedAt)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CreatedAt)
+            @Html.DisplayFor(model => model.Game.CreatedAt)
         </dd>
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
+    <a asp-action="Edit" asp-route-id="@Model.Game.Id">Edit</a> |
     <a asp-action="Index">Back to List</a>
 </div>
+
+<hr />
+<h4>Reviews</h4>
+
+@if (Model.Reviews.Count == 0)
+{
+    <p>No reviews yet.</p>
+}
+else
+{
+    <ul>
+        @foreach (var r in Model.Reviews)
+        {
+            <li>
+                <strong>Rating:</strong> @r.Rating/10
+                @if (!string.IsNullOrWhiteSpace(r.Text))
+                {
+                    <div>@r.Text</div>
+                }
+                <small>@r.CreatedAt.ToLocalTime()</small>
+            </li>
+        }
+    </ul>
+}
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <hr />
+    <h4>Add / Update your review</h4>
+
+    <form asp-action="AddReview" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="gameId" value="@Model.Game.Id" />
+
+        <div class="form-group">
+            <label>Rating (1-10)</label>
+            <input class="form-control" type="number" name="rating" min="1" max="10" value="8" required />
+        </div>
+
+        <div class="form-group">
+            <label>Text</label>
+            <textarea class="form-control" name="text" rows="4" maxlength="2000"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-2">Save review</button>
+    </form>
+}
+else
+{
+    <p><em>Log in to add a review.</em></p>
+}
+

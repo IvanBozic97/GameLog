@@ -34,9 +34,9 @@
         {
             <tr>
                 <td>
-                    <img src="~/images/games/@(string.IsNullOrEmpty(item.ImagePath) ? "placeholder.jpg" : item.ImagePath)"
-                         alt="@item.Title"
-                         style="width:60px; height:auto;" />
+                    <img class="game-cover-thumb"
+                         src="~/images/games/@item.ImagePath"
+                         alt="@item.Title" />
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Title)

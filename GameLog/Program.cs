@@ -52,8 +52,9 @@ using (var scope = app.Services.CreateScope())
 
     SeedData.SeedPlatforms(context);
 
-    // Seed games
     SeedData.SeedGames(context);
+
+    SeedData.SeedGameRelations(context);
 
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = services.GetRequiredService<UserManager<IdentityUser>>();

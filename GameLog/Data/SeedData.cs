@@ -86,4 +86,139 @@ public static class SeedData
         context.Games.AddRange(games);
         context.SaveChanges();
     }
+
+    public static void SeedGameRelations(ApplicationDbContext context)
+    {
+        if (context.GameGenres.Any() || context.GamePlatforms.Any())
+            return;
+
+        // helperi za lakše traženje
+        Genre G(string name) => context.Genres.First(g => g.Name == name);
+        Platform P(string name) => context.Platforms.First(p => p.Name == name);
+        Game GameByTitle(string title) => context.Games.First(g => g.Title == title);
+
+        void Add(string gameTitle, string[] genres, string[] platforms)
+        {
+            var game = GameByTitle(gameTitle);
+
+            foreach (var g in genres)
+            {
+                context.GameGenres.Add(new GameGenre
+                {
+                    GameId = game.Id,
+                    GenreId = G(g).Id
+                });
+            }
+
+            foreach (var p in platforms)
+            {
+                context.GamePlatforms.Add(new GamePlatform
+                {
+                    GameId = game.Id,
+                    PlatformId = P(p).Id
+                });
+            }
+        }
+
+        // ===== IGRE =====
+
+        Add("God of War Ragnarök",
+            new[] { "Action", "Adventure" },
+            new[] { "PlayStation" });
+
+        Add("Marvel's Spider-Man 2",
+            new[] { "Action", "Adventure" },
+            new[] { "PlayStation" });
+
+        Add("Devil May Cry 5",
+            new[] { "Action" },
+            new[] { "PC", "PlayStation", "Xbox" });
+
+        Add("The Witcher 3: Wild Hunt",
+            new[] { "RPG", "Adventure" },
+            new[] { "PC", "PlayStation", "Xbox", "Nintendo Switch" });
+
+        Add("Elden Ring",
+            new[] { "RPG", "Action" },
+            new[] { "PC", "PlayStation", "Xbox" });
+
+        Add("Baldur’s Gate 3",
+            new[] { "RPG", "Strategy" },
+            new[] { "PC", "PlayStation", "Xbox" });
+
+        Add("Red Dead Redemption 2",
+            new[] { "Action", "Adventure" },
+            new[] { "PC", "PlayStation", "Xbox" });
+
+        Add("The Last of Us Part I",
+            new[] { "Action", "Adventure" },
+            new[] { "PlayStation", "PC" });
+
+        Add("Ghost of Tsushima",
+            new[] { "Action", "Adventure" },
+            new[] { "PlayStation", "PC" });
+
+        Add("Halo Infinite",
+            new[] { "Shooter" },
+            new[] { "PC", "Xbox" });
+
+        Add("DOOM Eternal",
+            new[] { "Shooter", "Action" },
+            new[] { "PC", "PlayStation", "Xbox" });
+
+        Add("Call of Duty: Modern Warfare II",
+            new[] { "Shooter", "Action" },
+            new[] { "PC", "PlayStation", "Xbox" });
+
+        Add("Resident Evil 4",
+            new[] { "Horror", "Action" },
+            new[] { "PC", "PlayStation", "Xbox" });
+
+        Add("Dead Space",
+            new[] { "Horror" },
+            new[] { "PC", "PlayStation", "Xbox" });
+
+        Add("Alan Wake 2",
+            new[] { "Horror", "Adventure" },
+            new[] { "PC", "PlayStation", "Xbox" });
+
+        Add("Minecraft",
+            new[] { "Sandbox / Open World" },
+            new[] { "PC", "PlayStation", "Xbox", "Nintendo Switch" });
+
+        Add("Grand Theft Auto V",
+            new[] { "Action", "Sandbox / Open World" },
+            new[] { "PC", "PlayStation", "Xbox" });
+
+        Add("No Man’s Sky",
+            new[] { "Sandbox / Open World", "Adventure" },
+            new[] { "PC", "PlayStation", "Xbox", "Nintendo Switch" });
+
+        Add("Age of Wonders 4",
+            new[] { "Strategy" },
+            new[] { "PC" });
+
+        Add("Civilization VI",
+            new[] { "Strategy" },
+            new[] { "PC", "Nintendo Switch" });
+
+        Add("StarCraft II",
+            new[] { "Strategy" },
+            new[] { "PC" });
+
+        Add("Microsoft Flight Simulator",
+            new[] { "Simulation" },
+            new[] { "PC", "Xbox" });
+
+        Add("The Sims 4",
+            new[] { "Simulation" },
+            new[] { "PC", "PlayStation", "Xbox" });
+
+        Add("Euro Truck Simulator 2",
+            new[] { "Simulation" },
+            new[] { "PC" });
+
+        context.SaveChanges();
+    }
+
 }

@@ -6,6 +6,10 @@
 
 <h1>Details</h1>
 
+<img src="~/images/games/@(string.IsNullOrEmpty(Model.Game.ImagePath) ? "placeholder.jpg" : Model.Game.ImagePath)"
+     alt="@Model.Game.Title"
+     style="max-width:300px; height:auto; margin-bottom:20px;" />
+
 <div>
     <h4>Game</h4>
     <hr />

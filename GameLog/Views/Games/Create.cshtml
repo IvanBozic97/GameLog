@@ -1,4 +1,4 @@
-﻿@model GameLog.Models.Game
+﻿@model GameLog.Models.GameEditViewModel
 
 @{
     ViewData["Title"] = "Create";
@@ -9,35 +9,54 @@
 <h4>Game</h4>
 <hr />
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
+    <div class="col-md-6">
+        <form asp-action="Create" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
             <div class="form-group">
                 <label asp-for="Title" class="control-label"></label>
                 <input asp-for="Title" class="form-control" />
                 <span asp-validation-for="Title" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="ReleaseYear" class="control-label"></label>
                 <input asp-for="ReleaseYear" class="form-control" />
                 <span asp-validation-for="ReleaseYear" class="text-danger"></span>
             </div>
+
             <div class="form-group">
-                <label asp-for="CreatedAt" class="control-label"></label>
-                <input asp-for="CreatedAt" class="form-control" />
-                <span asp-validation-for="CreatedAt" class="text-danger"></span>
+                <label asp-for="ImagePath" class="control-label">Image filename</label>
+                <input asp-for="ImagePath" class="form-control" placeholder="e.g. rdr2.jpg" />
+                <span asp-validation-for="ImagePath" class="text-danger"></span>
+                <small class="text-muted">Put the image file in wwwroot/images/games</small>
             </div>
-            <div class="form-group">
+
+            <div class="form-group mt-3">
+                <label class="control-label">Genres</label>
+
+                @foreach (var g in Model.AllGenres)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="SelectedGenreIds"
+                               value="@g.Id" />
+                        <label class="form-check-label">@g.Name</label>
+                    </div>
+                }
+            </div>
+
+            <div class="form-group mt-3">
                 <input type="submit" value="Create" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

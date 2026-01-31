@@ -4,11 +4,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-
 
 namespace GameLog.Controllers
 {
@@ -32,7 +30,11 @@ namespace GameLog.Controllers
         {
             if (id == null) return NotFound();
 
-            var game = await _context.Games.FirstOrDefaultAsync(m => m.Id == id);
+            var game = await _context.Games
+                .Include(g => g.GameGenres)
+                    .ThenInclude(gg => gg.Genre)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
             if (game == null) return NotFound();
 
             var reviews = await _context.Reviews
@@ -57,11 +59,9 @@ namespace GameLog.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId)) return Challenge();
 
-            // check if game exists
             var gameExists = await _context.Games.AnyAsync(g => g.Id == gameId);
             if (!gameExists) return NotFound();
 
-            // if there is already a review, update it (easier than throwing an error)
             var existing = await _context.Reviews
                 .FirstOrDefaultAsync(r => r.GameId == gameId && r.UserId == userId);
 
@@ -89,95 +89,123 @@ namespace GameLog.Controllers
             return RedirectToAction(nameof(Details), new { id = gameId });
         }
 
-
         // GET: Games/Create
         [Authorize(Roles = "Admin")]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            return View();
+            // punimo žanrove za checkbox listu
+            var vm = new GameEditViewModel
+            {
+                AllGenres = await _context.Genres.OrderBy(g => g.Name).ToListAsync()
+            };
+
+            return View(vm);
         }
 
-
         // POST: Games/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create([Bind("Id,Title,ReleaseYear,CreatedAt")] Game game)
+        public async Task<IActionResult> Create(GameEditViewModel vm)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _context.Add(game);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                vm.AllGenres = await _context.Genres.OrderBy(g => g.Name).ToListAsync();
+                return View(vm);
             }
-            return View(game);
-        }
 
+            var game = new Game
+            {
+                Title = vm.Title,
+                ReleaseYear = vm.ReleaseYear,
+                ImagePath = vm.ImagePath,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            foreach (var genreId in vm.SelectedGenreIds.Distinct())
+            {
+                game.GameGenres.Add(new GameGenre { GenreId = genreId });
+            }
+
+            _context.Games.Add(game);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
 
         // GET: Games/Edit/5
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-                return NotFound();
+            if (id == null) return NotFound();
 
-            var game = await _context.Games.FindAsync(id);
-            if (game == null)
-                return NotFound();
+            var game = await _context.Games
+                .Include(g => g.GameGenres)
+                .FirstOrDefaultAsync(g => g.Id == id);
 
-            return View(game);
+            if (game == null) return NotFound();
+
+            var vm = new GameEditViewModel
+            {
+                Id = game.Id,
+                Title = game.Title,
+                ReleaseYear = game.ReleaseYear,
+                ImagePath = game.ImagePath,
+                SelectedGenreIds = game.GameGenres.Select(gg => gg.GenreId).ToList(),
+                AllGenres = await _context.Genres.OrderBy(g => g.Name).ToListAsync()
+            };
+
+            return View(vm);
         }
 
-
         // POST: Games/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,ReleaseYear,CreatedAt")] Game game)
+        public async Task<IActionResult> Edit(int id, GameEditViewModel vm)
         {
-            if (id != game.Id)
-                return NotFound();
+            if (id != vm.Id) return NotFound();
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(game);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!GameExists(game.Id))
-                        return NotFound();
-                    else
-                        throw;
-                }
-                return RedirectToAction(nameof(Index));
+                vm.AllGenres = await _context.Genres.OrderBy(g => g.Name).ToListAsync();
+                return View(vm);
             }
-            return View(game);
-        }
 
+            var game = await _context.Games
+                .Include(g => g.GameGenres)
+                .FirstOrDefaultAsync(g => g.Id == id);
+
+            if (game == null) return NotFound();
+
+            game.Title = vm.Title;
+            game.ReleaseYear = vm.ReleaseYear;
+            game.ImagePath = vm.ImagePath;
+
+            // zamijeni sve postojeće žanrove
+            game.GameGenres.Clear();
+            foreach (var genreId in vm.SelectedGenreIds.Distinct())
+            {
+                game.GameGenres.Add(new GameGenre { GameId = game.Id, GenreId = genreId });
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
 
         // GET: Games/Delete/5
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-                return NotFound();
+            if (id == null) return NotFound();
 
             var game = await _context.Games
                 .FirstOrDefaultAsync(m => m.Id == id);
 
-            if (game == null)
-                return NotFound();
+            if (game == null) return NotFound();
 
             return View(game);
         }
-
 
         // POST: Games/Delete/5
         [HttpPost, ActionName("Delete")]
@@ -199,7 +227,5 @@ namespace GameLog.Controllers
         {
             return _context.Games.Any(e => e.Id == id);
         }
-
-
     }
 }

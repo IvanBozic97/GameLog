@@ -1,14 +1,33 @@
 ﻿using GameLog.Areas.Identity.Data;
 using GameLog.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace GameLog.Data;
 
 public static class SeedData
 {
+    public static void SeedGenres(ApplicationDbContext context)
+    {
+        if (context.Genres.Any())
+            return;
+
+        var genres = new[]
+        {
+            "Action",
+            "RPG",
+            "Adventure",
+            "Shooter",
+            "Horror",
+            "Sandbox / Open World",
+            "Strategy",
+            "Simulation"
+        };
+
+        context.Genres.AddRange(genres.Select(g => new Genre { Name = g }));
+        context.SaveChanges();
+    }
+
     public static void SeedGames(ApplicationDbContext context)
     {
-        // Ako već ima igara – ne seedaj opet
         if (context.Games.Any())
             return;
 

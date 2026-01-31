@@ -48,6 +48,9 @@ using (var scope = app.Services.CreateScope())
     var context = services.GetRequiredService<ApplicationDbContext>();
     context.Database.Migrate();
 
+    SeedData.SeedGenres(context);
+
+
     // Seed games
     SeedData.SeedGames(context);
 

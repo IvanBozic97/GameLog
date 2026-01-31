@@ -7,33 +7,51 @@
 <h1>Details</h1>
 
 <img class="game-cover-large"
-     src="~/images/games/@Model.Game.ImagePath"
+     src="~/images/games/@(string.IsNullOrEmpty(Model.Game.ImagePath) ? "placeholder.jpg" : Model.Game.ImagePath)"
      alt="@Model.Game.Title" />
 
 <div>
     <h4>Game</h4>
     <hr />
     <dl class="row">
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Game.Title)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Game.Title)
         </dd>
-        <dt class = "col-sm-2">
+
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Game.ReleaseYear)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Game.ReleaseYear)
         </dd>
-        <dt class = "col-sm-2">
+
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Game.CreatedAt)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Game.CreatedAt)
+        </dd>
+
+        <!-- 🔹 NOVO: GENRES -->
+        <dt class="col-sm-2">
+            Genres
+        </dt>
+        <dd class="col-sm-10">
+            @if (Model.Game.GameGenres != null && Model.Game.GameGenres.Any())
+            {
+                @string.Join(", ", Model.Game.GameGenres.Select(gg => gg.Genre.Name))
+            }
+            else
+            {
+                <em>None</em>
+            }
         </dd>
     </dl>
 </div>
+
 <div>
     @if (User.IsInRole("Admin"))
     {
@@ -44,12 +62,10 @@
     <a asp-action="Index">Back to List</a>
 </div>
 
-
 <hr />
 
 @if (User.Identity?.IsAuthenticated == true)
 {
-    <hr />
     <h4>Add to My List</h4>
 
     <form asp-controller="UserGameLists" asp-action="Upsert" method="post">
@@ -66,9 +82,13 @@
         </div>
 
         <button type="submit" class="btn btn-success mt-2">Save to My List</button>
-        <a class="btn btn-outline-secondary mt-2" asp-controller="UserGameLists" asp-action="Index">Go to My List</a>
+        <a class="btn btn-outline-secondary mt-2"
+           asp-controller="UserGameLists"
+           asp-action="Index">Go to My List</a>
     </form>
 }
+
+<hr />
 
 <h4>Reviews</h4>
 
@@ -104,12 +124,21 @@ else
 
         <div class="form-group">
             <label>Rating (1-10)</label>
-            <input class="form-control" type="number" name="rating" min="1" max="10" value="8" required />
+            <input class="form-control"
+                   type="number"
+                   name="rating"
+                   min="1"
+                   max="10"
+                   value="8"
+                   required />
         </div>
 
         <div class="form-group">
             <label>Text</label>
-            <textarea class="form-control" name="text" rows="4" maxlength="2000"></textarea>
+            <textarea class="form-control"
+                  name="text"
+                  rows="4"
+                  maxlength="2000"></textarea>
         </div>
 
         <button type="submit" class="btn btn-primary mt-2">Save review</button>
@@ -119,4 +148,3 @@ else
 {
     <p><em>Log in to add a review.</em></p>
 }
-

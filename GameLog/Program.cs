@@ -15,10 +15,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services
     .AddDefaultIdentity<IdentityUser>(options =>
     {
-        options.SignIn.RequireConfirmedAccount = false; // so that you can log in immediately without email confirmation
+        options.SignIn.RequireConfirmedAccount = false;
     })
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultUI();
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>();
+
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages(); // required for Identity UI
@@ -39,12 +40,36 @@ app.UseRouting();
 app.UseAuthentication(); 
 app.UseAuthorization();
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
+
+    // 1) ensure that there is an Admin role
+    if (!await roleManager.RoleExistsAsync("Admin"))
+    {
+        await roleManager.CreateAsync(new IdentityRole("Admin"));
+    }
+
+    // 2) we assign the Admin role to your user
+    var adminEmail = "gamelogadmin@mail.com";
+    var adminUser = await userManager.FindByEmailAsync(adminEmail);
+
+    if (adminUser != null && !await userManager.IsInRoleAsync(adminUser, "Admin"))
+    {
+        await userManager.AddToRoleAsync(adminUser, "Admin");
+    }
+}
+
 // MVC routes
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 // Razor Pages for Identity
-app.MapRazorPages(); 
+app.MapRazorPages();
+// ...
 
 app.Run();

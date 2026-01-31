@@ -15,13 +15,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services
     .AddDefaultIdentity<IdentityUser>(options =>
     {
-        options.SignIn.RequireConfirmedAccount = false; // da odmah može login bez email potvrde
+        options.SignIn.RequireConfirmedAccount = false; // so that you can log in immediately without email confirmation
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultUI();
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddRazorPages(); // potrebno za Identity UI
+builder.Services.AddRazorPages(); // required for Identity UI
 
 var app = builder.Build();
 
@@ -39,12 +39,12 @@ app.UseRouting();
 app.UseAuthentication(); 
 app.UseAuthorization();
 
-// MVC rute
+// MVC routes
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Razor Pages za Identity
+// Razor Pages for Identity
 app.MapRazorPages(); 
 
 app.Run();

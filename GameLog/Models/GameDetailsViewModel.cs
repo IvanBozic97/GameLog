@@ -7,7 +7,7 @@ public class GameDetailsViewModel
     public Game Game { get; set; } = null!;
     public List<Review> Reviews { get; set; } = new();
 
-    // forma za dodavanje recenzije
+    // form for adding a review
     [Range(1, 10)]
     public int Rating { get; set; } = 8;
 

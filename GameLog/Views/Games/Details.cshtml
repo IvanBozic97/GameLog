@@ -36,6 +36,30 @@
 </div>
 
 <hr />
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <hr />
+    <h4>Add to My List</h4>
+
+    <form asp-controller="UserGameLists" asp-action="Upsert" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="gameId" value="@Model.Game.Id" />
+
+        <div class="form-group">
+            <label>Status</label>
+            <select class="form-control" name="status">
+                <option value="0">WantToPlay</option>
+                <option value="1">Playing</option>
+                <option value="2">Played</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-success mt-2">Save to My List</button>
+        <a class="btn btn-outline-secondary mt-2" asp-controller="UserGameLists" asp-action="Index">Go to My List</a>
+    </form>
+}
+
 <h4>Reviews</h4>
 
 @if (Model.Reviews.Count == 0)

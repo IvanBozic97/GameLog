@@ -2,6 +2,12 @@
 
 @{
     ViewData["Title"] = "Index";
+
+    var genres = ViewBag.Genres as List<GameLog.Models.Genre> ?? new();
+    var platforms = ViewBag.Platforms as List<GameLog.Models.Platform> ?? new();
+
+    int? selectedGenreId = ViewBag.SelectedGenreId as int?;
+    int? selectedPlatformId = ViewBag.SelectedPlatformId as int?;
 }
 
 <h1>Index</h1>
@@ -13,52 +19,92 @@
     </p>
 }
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Cover</th>
-            <th>
-                @Html.DisplayNameFor(model => model.Title)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ReleaseYear)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CreatedAt)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>
-                    <img class="game-cover-thumb"
-                         src="~/images/games/@item.ImagePath"
-                         alt="@item.Title" />
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Title)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.ReleaseYear)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.CreatedAt)
-                </td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a>
+<form method="get" class="row g-2 align-items-end mb-3">
+    <div class="col-md-4">
+        <label class="form-label">Genre</label>
+        <select class="form-select" name="genreId">
+            <option value="">All</option>
+            @foreach (var g in genres)
+            {
+                if (selectedGenreId.HasValue && selectedGenreId.Value == g.Id)
+                {
+                    <option value="@g.Id" selected>@g.Name</option>
+                }
+                else
+                {
+                    <option value="@g.Id">@g.Name</option>
+                }
+            }
+        </select>
+    </div>
 
-                    @if (User.IsInRole("Admin"))
-                    {
-                        <span> | </span>
-                        <a asp-action="Edit" asp-route-id="@item.Id">Edit</a>
-                        <span> | </span>
-                        <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-                    }
-                </td>
+    <div class="col-md-4">
+        <label class="form-label">Platform</label>
+        <select class="form-select" name="platformId">
+            <option value="">All</option>
+            @foreach (var p in platforms)
+            {
+                if (selectedPlatformId.HasValue && selectedPlatformId.Value == p.Id)
+                {
+                    <option value="@p.Id" selected>@p.Name</option>
+                }
+                else
+                {
+                    <option value="@p.Id">@p.Name</option>
+                }
+            }
+        </select>
+    </div>
+
+    <div class="col-md-4">
+        <button type="submit" class="btn btn-primary me-2">Filter</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Reset</a>
+    </div>
+</form>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        No games match the selected filters.
+    </div>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Cover</th>
+                <th>@Html.DisplayNameFor(model => model.Title)</th>
+                <th>@Html.DisplayNameFor(model => model.ReleaseYear)</th>
+                <th>@Html.DisplayNameFor(model => model.CreatedAt)</th>
+                <th></th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <img class="game-cover-thumb"
+                             src="~/images/games/@(string.IsNullOrEmpty(item.ImagePath) ? "placeholder.jpg" : item.ImagePath)"
+                             alt="@item.Title" />
+                    </td>
+                    <td>@Html.DisplayFor(modelItem => item.Title)</td>
+                    <td>@Html.DisplayFor(modelItem => item.ReleaseYear)</td>
+                    <td>@Html.DisplayFor(modelItem => item.CreatedAt)</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id">Details</a>
+
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <span> | </span>
+                            <a asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                            <span> | </span>
+                            <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

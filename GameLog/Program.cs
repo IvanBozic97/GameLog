@@ -38,6 +38,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
+
 app.UseAuthentication(); 
 app.UseAuthorization();
 

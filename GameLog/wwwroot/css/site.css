@@ -33,7 +33,7 @@ body {
 
 .game-cover-large {
     width: 320px;
-    height: 480px;
+    height: 320px;
     object-fit: contain; 
     background: #f4f4f4; 
     border-radius: 10px;

@@ -11,7 +11,8 @@
     var search = ViewBag.Search as string ?? "";
 }
 
-<h1>Index</h1>
+<h1>Games</h1>
+<p class="text-muted">Browse and filter games in the catalog.</p>
 
 @if (User.IsInRole("Admin"))
 {
@@ -20,57 +21,59 @@
     </p>
 }
 
-<form method="get" class="row g-2 align-items-end mb-3">
-    <div class="col-md-4">
-        <label class="form-label">Genre</label>
-        <select class="form-select" name="genreId">
-            <option value="">All</option>
-            @foreach (var g in genres)
-            {
-                if (selectedGenreId.HasValue && selectedGenreId.Value == g.Id)
+<div class="p-3 border rounded-3 bg-light mb-3">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label">Genre</label>
+            <select class="form-select" name="genreId">
+                <option value="">All</option>
+                @foreach (var g in genres)
                 {
-                    <option value="@g.Id" selected>@g.Name</option>
+                    if (selectedGenreId.HasValue && selectedGenreId.Value == g.Id)
+                    {
+                        <option value="@g.Id" selected>@g.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@g.Id">@g.Name</option>
+                    }
                 }
-                else
-                {
-                    <option value="@g.Id">@g.Name</option>
-                }
-            }
-        </select>
-    </div>
+            </select>
+        </div>
 
-    <div class="col-md-4">
-        <label class="form-label">Platform</label>
-        <select class="form-select" name="platformId">
-            <option value="">All</option>
-            @foreach (var p in platforms)
-            {
-                if (selectedPlatformId.HasValue && selectedPlatformId.Value == p.Id)
+        <div class="col-md-4">
+            <label class="form-label">Platform</label>
+            <select class="form-select" name="platformId">
+                <option value="">All</option>
+                @foreach (var p in platforms)
                 {
-                    <option value="@p.Id" selected>@p.Name</option>
+                    if (selectedPlatformId.HasValue && selectedPlatformId.Value == p.Id)
+                    {
+                        <option value="@p.Id" selected>@p.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@p.Id">@p.Name</option>
+                    }
                 }
-                else
-                {
-                    <option value="@p.Id">@p.Name</option>
-                }
-            }
-        </select>
-    </div>
+            </select>
+        </div>
 
-    <div class="col-md-4">
-        <label class="form-label" for="search">Search</label>
-        <input id="search"
-               name="search"
-               value="@search"
-               class="form-control"
-               placeholder="Search by title..." />
-    </div>
+        <div class="col-md-4">
+            <label class="form-label" for="search">Search</label>
+            <input id="search"
+                   name="search"
+                   value="@search"
+                   class="form-control"
+                   placeholder="Search by title..." />
+        </div>
 
-    <div class="col-md-12">
-        <button type="submit" class="btn btn-primary me-2">Filter</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Reset</a>
-    </div>
-</form>
+        <div class="col-md-12">
+            <button type="submit" class="btn btn-primary me-2">Filter</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Reset</a>
+        </div>
+    </form>
+</div>
 
 @if (!Model.Any())
 {
@@ -101,7 +104,7 @@ else
                     </td>
                     <td>@Html.DisplayFor(modelItem => item.Title)</td>
                     <td>@Html.DisplayFor(modelItem => item.ReleaseYear)</td>
-                    <td>@Html.DisplayFor(modelItem => item.CreatedAt)</td>
+                    <td>@item.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</td>
                     <td>
                         <a asp-action="Details" asp-route-id="@item.Id">Details</a>
 

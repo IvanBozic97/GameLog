@@ -120,7 +120,7 @@ public static class SeedData
             }
         }
 
-        // ===== IGRE =====
+        // ===== Genres and Platforms =====
 
         Add("God of War Ragnarök",
             new[] { "Action", "Adventure" },

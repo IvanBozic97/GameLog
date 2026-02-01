@@ -20,13 +20,16 @@ namespace GameLog.Controllers
         }
 
         // GET: Games
-        public async Task<IActionResult> Index(int? genreId, int? platformId)
+        public async Task<IActionResult> Index(int? genreId, int? platformId, string? search)
         {
             ViewBag.Genres = await _context.Genres.OrderBy(g => g.Name).ToListAsync();
             ViewBag.Platforms = await _context.Platforms.OrderBy(p => p.Name).ToListAsync();
 
             ViewBag.SelectedGenreId = genreId;
             ViewBag.SelectedPlatformId = platformId;
+
+            // keep search text in the UI
+            ViewBag.Search = search;
 
             var query = _context.Games.AsQueryable();
 
@@ -40,6 +43,12 @@ namespace GameLog.Controllers
                 query = query.Where(g => g.GamePlatforms.Any(gp => gp.PlatformId == platformId.Value));
             }
 
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim();
+                query = query.Where(g => g.Title.Contains(term));
+            }
+
             query = query
                 .Include(g => g.GameGenres)
                 .Include(g => g.GamePlatforms)
@@ -47,6 +56,7 @@ namespace GameLog.Controllers
 
             return View(await query.ToListAsync());
         }
+
 
         // GET: Games/Details/5
         public async Task<IActionResult> Details(int? id)

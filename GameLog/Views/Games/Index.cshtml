@@ -8,6 +8,7 @@
 
     int? selectedGenreId = ViewBag.SelectedGenreId as int?;
     int? selectedPlatformId = ViewBag.SelectedPlatformId as int?;
+    var search = ViewBag.Search as string ?? "";
 }
 
 <h1>Index</h1>
@@ -57,6 +58,15 @@
     </div>
 
     <div class="col-md-4">
+        <label class="form-label" for="search">Search</label>
+        <input id="search"
+               name="search"
+               value="@search"
+               class="form-control"
+               placeholder="Search by title..." />
+    </div>
+
+    <div class="col-md-12">
         <button type="submit" class="btn btn-primary me-2">Filter</button>
         <a asp-action="Index" class="btn btn-outline-secondary">Reset</a>
     </div>

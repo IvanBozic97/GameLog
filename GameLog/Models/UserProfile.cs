@@ -12,4 +12,7 @@ public class UserProfile
 
     [MaxLength(100)]
     public string AvatarFileName { get; set; } = "default-avatar.jpg";
+
+    [Required, MaxLength(30)]
+    public string DisplayName { get; set; } = string.Empty;
 }

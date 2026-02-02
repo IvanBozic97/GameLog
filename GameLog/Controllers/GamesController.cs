@@ -97,6 +97,42 @@ namespace GameLog.Controllers
                 }
             ).ToListAsync();
 
+            var reviewIds = reviews.Select(r => r.Id).ToList();
+
+            var comments = await (
+                from c in _context.ReviewComments
+                where reviewIds.Contains(c.ReviewId)
+                join up in _context.UserProfiles
+                    on c.UserId equals up.UserId into profileJoin
+                from up in profileJoin.DefaultIfEmpty()
+                orderby c.CreatedAt ascending
+                select new ReviewCommentDisplayViewModel
+                {
+                    Id = c.Id,
+                    ReviewId = c.ReviewId,
+                    UserId = c.UserId,
+                    Text = c.Text,
+                    CreatedAt = c.CreatedAt,
+                    DisplayName = up != null && !string.IsNullOrWhiteSpace(up.DisplayName)
+                        ? up.DisplayName
+                        : "User",
+                    AvatarFileName = up != null && !string.IsNullOrWhiteSpace(up.AvatarFileName)
+                        ? up.AvatarFileName
+                        : "default-avatar.jpg"
+                }
+            ).ToListAsync();
+
+            var commentsByReviewId = comments
+                .GroupBy(c => c.ReviewId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            foreach (var r in reviews)
+            {
+                if (commentsByReviewId.TryGetValue(r.Id, out var list))
+                    r.Comments = list;
+            }
+
+
             var vm = new GameDetailsViewModel
             {
                 Game = game,
@@ -152,6 +188,41 @@ namespace GameLog.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Details), new { id = gameId });
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> AddComment(int gameId, int reviewId, string text)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Challenge();
+
+            if (string.IsNullOrWhiteSpace(text) || text.Trim().Length < 1)
+            {
+                TempData["CommentError"] = "Comment cannot be empty.";
+                return RedirectToAction(nameof(Details), new { id = gameId });
+            }
+
+            text = text.Trim();
+
+            // (opc.) dodatna sigurnost: provjeri postoji li review
+            var reviewExists = await _context.Reviews.AnyAsync(r => r.Id == reviewId && r.GameId == gameId);
+            if (!reviewExists) return NotFound();
+
+            var comment = new ReviewComment
+            {
+                ReviewId = reviewId,
+                UserId = userId,
+                Text = text,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.ReviewComments.Add(comment);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Details), new { id = gameId });
+        }
+
 
 
         // GET: Games/Create

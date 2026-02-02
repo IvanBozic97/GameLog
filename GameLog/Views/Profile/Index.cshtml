@@ -1,0 +1,38 @@
+﻿@model GameLog.Models.UserProfile
+
+@{
+    ViewData["Title"] = "My Profile";
+    var avatars = ViewBag.Avatars as string[] ?? Array.Empty<string>();
+}
+
+<h1>My Profile</h1>
+<p class="text-muted">Choose your avatar.</p>
+
+<div class="mb-3">
+    <strong>Current avatar:</strong>
+    <div class="mt-2">
+        <img src="~/images/avatars/@(string.IsNullOrWhiteSpace(Model.AvatarFileName) ? "default-avatar.jpg" : Model.AvatarFileName)"
+             onerror="this.onerror=null;this.src='/images/avatars/default-avatar.jpg';"
+             alt="Avatar"
+             style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:1px solid #ddd;" />
+    </div>
+</div>
+
+<div class="row g-3">
+    @foreach (var a in avatars)
+    {
+        <div class="col-4 col-md-2 text-center">
+            <form asp-action="SetAvatar" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="avatarFileName" value="@a" />
+                <button type="submit"
+                        class="btn p-1"
+                        style="border: @(a == Model.AvatarFileName ? "2px solid #0d6efd" : "1px solid #ddd"); border-radius: 999px;">
+                    <img src="~/images/avatars/@a"
+                         alt="@a"
+                         style="width:64px;height:64px;border-radius:50%;object-fit:cover;" />
+                </button>
+            </form>
+        </div>
+    }
+</div>

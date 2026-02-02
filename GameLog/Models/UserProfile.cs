@@ -11,5 +11,5 @@ public class UserProfile
     public IdentityUser User { get; set; } = null!;
 
     [MaxLength(100)]
-    public string AvatarFileName { get; set; } = "avatar-1.png";
+    public string AvatarFileName { get; set; } = "default-avatar.jpg";
 }

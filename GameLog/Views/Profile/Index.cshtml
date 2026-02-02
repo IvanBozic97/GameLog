@@ -6,17 +6,51 @@
 }
 
 <h1>My Profile</h1>
-<p class="text-muted">Choose your avatar.</p>
+<p class="text-muted">Set your display name and choose an avatar.</p>
 
-<div class="mb-3">
-    <strong>Current avatar:</strong>
-    <div class="mt-2">
+@if (TempData["ProfileError"] != null)
+{
+    <div class="alert alert-warning">
+        @TempData["ProfileError"]
+    </div>
+}
+
+<div class="row g-4 mb-3">
+    <div class="col-md-6">
+        <h5 class="mb-2">Current avatar</h5>
         <img src="~/images/avatars/@(string.IsNullOrWhiteSpace(Model.AvatarFileName) ? "default-avatar.jpg" : Model.AvatarFileName)"
              onerror="this.onerror=null;this.src='/images/avatars/default-avatar.jpg';"
              alt="Avatar"
              style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:1px solid #ddd;" />
     </div>
+
+    <div class="col-md-6">
+        <h5 class="mb-2">Display name</h5>
+
+        <form asp-action="SetDisplayName" method="post" class="row g-2 align-items-end">
+            @Html.AntiForgeryToken()
+
+            <div class="col-12">
+                <label class="form-label" for="displayName">Display name</label>
+                <input id="displayName"
+                       name="displayName"
+                       value="@Model.DisplayName"
+                       class="form-control"
+                       maxlength="30"
+                       required />
+                <div class="form-text">3–30 characters. This name is shown next to your reviews and comments.</div>
+            </div>
+
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    Save
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
+
+<h5 class="mb-2">Choose an avatar</h5>
 
 <div class="row g-3">
     @foreach (var a in avatars)
@@ -25,10 +59,12 @@
             <form asp-action="SetAvatar" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="avatarFileName" value="@a" />
+
                 <button type="submit"
                         class="btn p-1"
                         style="border: @(a == Model.AvatarFileName ? "2px solid #0d6efd" : "1px solid #ddd"); border-radius: 999px;">
                     <img src="~/images/avatars/@a"
+                         onerror="this.onerror=null;this.src='/images/avatars/default-avatar.jpg';"
                          alt="@a"
                          style="width:64px;height:64px;border-radius:50%;object-fit:cover;" />
                 </button>

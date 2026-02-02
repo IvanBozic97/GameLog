@@ -38,13 +38,35 @@ public class ProfileController : Controller
 
         if (profile == null)
         {
+            var user = await _userManager.GetUserAsync(User);
+            var email = user?.Email ?? "";
+            var defaultName = string.IsNullOrWhiteSpace(email)
+                ? "User"
+                : email.Split('@')[0];
+
             profile = new UserProfile
             {
                 UserId = userId!,
-                AvatarFileName = "default-avatar.jpg"
+                AvatarFileName = "default-avatar.jpg",
+                DisplayName = defaultName
             };
+
             _context.UserProfiles.Add(profile);
             await _context.SaveChangesAsync();
+        }
+        else
+        {
+            // ako je profil postojao prije migracije i nema DisplayName
+            if (string.IsNullOrWhiteSpace(profile.DisplayName))
+            {
+                var user = await _userManager.GetUserAsync(User);
+                var email = user?.Email ?? "";
+                profile.DisplayName = string.IsNullOrWhiteSpace(email)
+                    ? "User"
+                    : email.Split('@')[0];
+
+                await _context.SaveChangesAsync();
+            }
         }
 
         ViewBag.Avatars = AvatarPool;
@@ -68,7 +90,19 @@ public class ProfileController : Controller
 
         if (profile == null)
         {
-            profile = new UserProfile { UserId = userId!, AvatarFileName = avatarFileName };
+            var user = await _userManager.GetUserAsync(User);
+            var email = user?.Email ?? "";
+            var defaultName = string.IsNullOrWhiteSpace(email)
+                ? "User"
+                : email.Split('@')[0];
+
+            profile = new UserProfile
+            {
+                UserId = userId!,
+                AvatarFileName = avatarFileName,
+                DisplayName = defaultName
+            };
+
             _context.UserProfiles.Add(profile);
         }
         else
@@ -79,4 +113,45 @@ public class ProfileController : Controller
         await _context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SetDisplayName(string displayName)
+    {
+        displayName = (displayName ?? "").Trim();
+
+        if (displayName.Length < 3 || displayName.Length > 30)
+        {
+            TempData["ProfileError"] = "Display name must be between 3 and 30 characters.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var userId = _userManager.GetUserId(User);
+
+        var profile = await _context.UserProfiles
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        if (profile == null)
+        {
+            // sigurnosno: ako nema profila, kreiraj ga
+            var email = (await _userManager.GetUserAsync(User))?.Email ?? "";
+            var defaultAvatar = "default-avatar.jpg";
+
+            profile = new UserProfile
+            {
+                UserId = userId!,
+                AvatarFileName = defaultAvatar,
+                DisplayName = displayName
+            };
+            _context.UserProfiles.Add(profile);
+        }
+        else
+        {
+            profile.DisplayName = displayName;
+        }
+
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
+    }
+
 }

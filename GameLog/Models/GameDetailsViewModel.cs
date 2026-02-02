@@ -5,7 +5,9 @@ namespace GameLog.Models;
 public class GameDetailsViewModel
 {
     public Game Game { get; set; } = null!;
-    public List<Review> Reviews { get; set; } = new();
+
+    // Reviews for display (with avatar + display name)
+    public List<ReviewDisplayViewModel> Reviews { get; set; } = new();
 
     // form for adding a review
     [Range(1, 10)]

@@ -72,10 +72,30 @@ namespace GameLog.Controllers
 
             if (game == null) return NotFound();
 
-            var reviews = await _context.Reviews
-                .Where(r => r.GameId == game.Id)
-                .OrderByDescending(r => r.CreatedAt)
-                .ToListAsync();
+            var reviews = await (
+                from r in _context.Reviews
+                where r.GameId == game.Id
+                join up in _context.UserProfiles
+                    on r.UserId equals up.UserId into profileJoin
+                from up in profileJoin.DefaultIfEmpty()
+                orderby r.CreatedAt descending
+                select new ReviewDisplayViewModel
+                {
+                    Id = r.Id,
+                    UserId = r.UserId,
+                    Rating = r.Rating,
+                    Text = r.Text,
+                    CreatedAt = r.CreatedAt,
+
+                    DisplayName = up != null && !string.IsNullOrWhiteSpace(up.DisplayName)
+                        ? up.DisplayName
+                        : "User",
+
+                    AvatarFileName = up != null && !string.IsNullOrWhiteSpace(up.AvatarFileName)
+                        ? up.AvatarFileName
+                        : "default-avatar.jpg"
+                }
+            ).ToListAsync();
 
             var vm = new GameDetailsViewModel
             {
@@ -86,6 +106,7 @@ namespace GameLog.Controllers
             return View(vm);
         }
 
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
@@ -93,6 +114,14 @@ namespace GameLog.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId)) return Challenge();
+
+            // Require display name before allowing reviews
+            var profile = await _context.UserProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+            if (profile == null || string.IsNullOrWhiteSpace(profile.DisplayName))
+            {
+                TempData["ProfileError"] = "Please set a display name before posting a review.";
+                return RedirectToAction("Index", "Profile");
+            }
 
             var gameExists = await _context.Games.AnyAsync(g => g.Id == gameId);
             if (!gameExists) return NotFound();
@@ -123,6 +152,7 @@ namespace GameLog.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Details), new { id = gameId });
         }
+
 
         // GET: Games/Create
         [Authorize(Roles = "Admin")]

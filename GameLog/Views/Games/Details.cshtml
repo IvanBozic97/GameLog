@@ -112,20 +112,33 @@
 }
 else
 {
-    <ul>
+    <div class="d-flex flex-column gap-3">
         @foreach (var r in Model.Reviews)
         {
-            <li>
-                <strong>Rating:</strong> @r.Rating/10
+            <div class="border rounded-3 p-3">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <img src="~/images/avatars/@r.AvatarFileName"
+                         onerror="this.onerror=null;this.src='/images/avatars/default-avatar.jpg';"
+                         alt="Avatar"
+                         style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid #ddd;" />
+
+                    <div>
+                        <div class="fw-semibold">@r.DisplayName</div>
+                        <div class="text-muted" style="font-size: 0.9rem;">
+                            Rating: @r.Rating/10 • @r.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")
+                        </div>
+                    </div>
+                </div>
+
                 @if (!string.IsNullOrWhiteSpace(r.Text))
                 {
                     <div>@r.Text</div>
                 }
-                <small>@r.CreatedAt.ToLocalTime()</small>
-            </li>
+            </div>
         }
-    </ul>
+    </div>
 }
+
 
 @if (User.Identity?.IsAuthenticated == true)
 {

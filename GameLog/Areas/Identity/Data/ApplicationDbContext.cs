@@ -13,6 +13,8 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     public DbSet<UserGameList> UserGameLists => Set<UserGameList>();
     public DbSet<Follow> Follows => Set<Follow>();
 
+    public DbSet<UserProfile> UserProfiles { get; set; } = default!;
+
     public DbSet<Genre> Genres => Set<Genre>();
     public DbSet<GameGenre> GameGenres => Set<GameGenre>();
 
@@ -48,6 +50,12 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
 
         builder.Entity<GamePlatform>()
             .HasKey(gp => new { gp.GameId, gp.PlatformId });
+
+        builder.Entity<UserProfile>()
+    .HasOne(up => up.User)
+    .WithOne()
+    .HasForeignKey<UserProfile>(up => up.UserId)
+    .OnDelete(DeleteBehavior.Cascade);
         // Customize the ASP.NET Identity model and override the defaults if needed.
         // For example, you can rename the ASP.NET Identity table names and more.
         // Add your customizations after calling base.OnModelCreating(builder);

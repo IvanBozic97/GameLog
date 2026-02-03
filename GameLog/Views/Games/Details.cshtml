@@ -164,6 +164,18 @@ else
                     </div>
                 }
 
+                @if (User.Identity?.IsAuthenticated == true &&
+                        (User.IsInRole("Admin") || r.UserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value))
+                {
+                    <form asp-action="DeleteReview" method="post" class="mt-2">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="gameId" value="@Model.Game.Id" />
+                        <input type="hidden" name="reviewId" value="@r.Id" />
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            Delete review
+                        </button>
+                    </form>
+                }
 
                 <div class="mt-3">
 
@@ -181,11 +193,26 @@ else
                                          style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid #ddd;" />
 
                                     <div class="flex-grow-1">
-                                        <div class="d-flex align-items-baseline gap-2">
-                                            <span class="fw-semibold">@c.DisplayName</span>
-                                            <small class="text-muted">@c.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</small>
+                                        <div class="d-flex align-items-baseline justify-content-between">
+                                            <div class="d-flex align-items-baseline gap-2">
+                                                <span class="fw-semibold">@c.DisplayName</span>
+                                                <small class="text-muted">@c.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</small>
+                                            </div>
+
+                                            @if (User.Identity?.IsAuthenticated == true &&
+                                                                        (User.IsInRole("Admin") || c.UserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value))
+                                            {
+                                                <form asp-action="DeleteComment" method="post" class="ms-2">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="gameId" value="@Model.Game.Id" />
+                                                    <input type="hidden" name="commentId" value="@c.Id" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                                </form>
+                                            }
                                         </div>
+
                                         <div>@c.Text</div>
+
                                     </div>
                                 </div>
                             }

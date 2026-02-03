@@ -247,6 +247,27 @@ namespace GameLog.Controllers
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteComment(int gameId, int commentId)
+        {
+            var userId = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Challenge();
+
+            var comment = await _context.ReviewComments.FirstOrDefaultAsync(c => c.Id == commentId);
+            if (comment == null) return NotFound();
+
+            var isAdmin = User.IsInRole("Admin");
+            if (!isAdmin && comment.UserId != userId) return Forbid();
+
+            _context.ReviewComments.Remove(comment);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Details), new { id = gameId });
+        }
+
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleReaction(int gameId, int reviewId, bool isLike)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -273,6 +294,33 @@ namespace GameLog.Controllers
                 existing.IsLike = isLike;
                 _context.ReviewReactions.Update(existing);
             }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Details), new { id = gameId });
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteReview(int gameId, int reviewId)
+        {
+            var userId = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Challenge();
+
+            var review = await _context.Reviews.FirstOrDefaultAsync(r => r.Id == reviewId && r.GameId == gameId);
+            if (review == null) return NotFound();
+
+            var isAdmin = User.IsInRole("Admin");
+            if (!isAdmin && review.UserId != userId) return Forbid();
+
+            // cascade manually (safe and explicit)
+            var comments = await _context.ReviewComments.Where(c => c.ReviewId == reviewId).ToListAsync();
+            _context.ReviewComments.RemoveRange(comments);
+
+            var reactions = await _context.ReviewReactions.Where(rr => rr.ReviewId == reviewId).ToListAsync();
+            _context.ReviewReactions.RemoveRange(reactions);
+
+            _context.Reviews.Remove(review);
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Details), new { id = gameId });

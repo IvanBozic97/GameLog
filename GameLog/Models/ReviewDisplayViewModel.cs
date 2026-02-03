@@ -17,4 +17,10 @@ public class ReviewDisplayViewModel
     public string AvatarFileName { get; set; } = "default-avatar.jpg";
 
     public List<ReviewCommentDisplayViewModel> Comments { get; set; } = new();
+
+    public int LikeCount { get; set; }
+    public int DislikeCount { get; set; }
+    public bool? UserReactionIsLike { get; set; } // true=like, false=dislike, null=none
+
+
 }

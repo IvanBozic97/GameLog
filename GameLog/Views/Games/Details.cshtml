@@ -135,6 +135,36 @@ else
                     <div class="mb-2">@r.Text</div>
                 }
 
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <div class="mt-2 d-flex gap-2">
+                        <form asp-action="ToggleReaction" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="gameId" value="@Model.Game.Id" />
+                            <input type="hidden" name="reviewId" value="@r.Id" />
+                            <input type="hidden" name="isLike" value="true" />
+
+                            <button type="submit"
+                                    class="btn @(r.UserReactionIsLike == true ? "btn-success" : "btn-outline-success")">
+                                👍 @r.LikeCount
+                            </button>
+                        </form>
+
+                        <form asp-action="ToggleReaction" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="gameId" value="@Model.Game.Id" />
+                            <input type="hidden" name="reviewId" value="@r.Id" />
+                            <input type="hidden" name="isLike" value="false" />
+
+                            <button type="submit"
+                                    class="btn @(r.UserReactionIsLike == false ? "btn-danger" : "btn-outline-danger")">
+                                👎 @r.DislikeCount
+                            </button>
+                        </form>
+                    </div>
+                }
+
+
                 <div class="mt-3">
 
                     <div class="fw-semibold mb-2">Comments</div>

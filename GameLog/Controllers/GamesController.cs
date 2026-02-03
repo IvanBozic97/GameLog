@@ -99,6 +99,27 @@ namespace GameLog.Controllers
 
             var reviewIds = reviews.Select(r => r.Id).ToList();
 
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var reactions = await _context.ReviewReactions
+                .Where(rr => reviewIds.Contains(rr.ReviewId))
+                .ToListAsync();
+
+            foreach (var r in reviews)
+            {
+                var rReactions = reactions.Where(x => x.ReviewId == r.Id).ToList();
+
+                r.LikeCount = rReactions.Count(x => x.IsLike);
+                r.DislikeCount = rReactions.Count(x => !x.IsLike);
+
+                if (!string.IsNullOrEmpty(currentUserId))
+                {
+                    var myReaction = rReactions.FirstOrDefault(x => x.UserId == currentUserId);
+                    r.UserReactionIsLike = myReaction?.IsLike;
+                }
+            }
+
+
             var comments = await (
                 from c in _context.ReviewComments
                 where reviewIds.Contains(c.ReviewId)
@@ -223,6 +244,39 @@ namespace GameLog.Controllers
             return RedirectToAction(nameof(Details), new { id = gameId });
         }
 
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleReaction(int gameId, int reviewId, bool isLike)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Challenge();
+
+            var existing = await _context.ReviewReactions
+                .FirstOrDefaultAsync(r => r.ReviewId == reviewId && r.UserId == userId);
+
+            if (existing == null)
+            {
+                _context.ReviewReactions.Add(new ReviewReaction
+                {
+                    ReviewId = reviewId,
+                    UserId = userId,
+                    IsLike = isLike
+                });
+            }
+            else if (existing.IsLike == isLike)
+            {
+                _context.ReviewReactions.Remove(existing);
+            }
+            else
+            {
+                existing.IsLike = isLike;
+                _context.ReviewReactions.Update(existing);
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Details), new { id = gameId });
+        }
 
 
         // GET: Games/Create

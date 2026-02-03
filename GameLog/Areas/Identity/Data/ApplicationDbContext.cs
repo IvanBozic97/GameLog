@@ -22,6 +22,8 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     public DbSet<GamePlatform> GamePlatforms => Set<GamePlatform>();
 
     public DbSet<ReviewComment> ReviewComments => Set<ReviewComment>();
+    public DbSet<ReviewReaction> ReviewReactions { get; set; }
+
     public DbSet<Report> Reports => Set<Report>();
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
@@ -37,6 +39,10 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
         builder.Entity<Review>()
         .HasIndex(r => new { r.UserId, r.GameId })
         .IsUnique();
+
+        builder.Entity<ReviewReaction>()
+    .HasIndex(rr => new { rr.ReviewId, rr.UserId })
+    .IsUnique();
 
         builder.Entity<UserGameList>()
             .HasIndex(ugl => new { ugl.UserId, ugl.GameId })

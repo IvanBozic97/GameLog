@@ -237,7 +237,7 @@ namespace GameLog.Controllers
 
             text = text.Trim();
 
-            // (opc.) dodatna sigurnost: provjeri postoji li review
+            // extra security: check if there is a review
             var reviewExists = await _context.Reviews.AnyAsync(r => r.Id == reviewId && r.GameId == gameId);
             if (!reviewExists) return NotFound();
 

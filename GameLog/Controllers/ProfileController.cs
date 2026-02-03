@@ -13,7 +13,7 @@ public class ProfileController : Controller
     private readonly ApplicationDbContext _context;
     private readonly UserManager<IdentityUser> _userManager;
 
-    // hardcoded pool (sigurno jer su to tvoji fileovi u wwwroot)
+    // hardcoded pool (safe because files are in wwwroot)
     private static readonly string[] AvatarPool = new[]
     {
         "avatar-1.jpg","avatar-2.jpg","avatar-3.jpg","avatar-4.jpg",
@@ -56,7 +56,7 @@ public class ProfileController : Controller
         }
         else
         {
-            // ako je profil postojao prije migracije i nema DisplayName
+            // if the profile existed before migration and does not have a DisplayName
             if (string.IsNullOrWhiteSpace(profile.DisplayName))
             {
                 var user = await _userManager.GetUserAsync(User);
@@ -77,7 +77,7 @@ public class ProfileController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SetAvatar(string avatarFileName)
     {
-        // zaštita: prihvati samo iz poola
+        // protection: accept only from pool
         if (string.IsNullOrWhiteSpace(avatarFileName) || !AvatarPool.Contains(avatarFileName))
         {
             return BadRequest();
@@ -133,7 +133,7 @@ public class ProfileController : Controller
 
         if (profile == null)
         {
-            // sigurnosno: ako nema profila, kreiraj ga
+            // security: if there is no profile, create one
             var email = (await _userManager.GetUserAsync(User))?.Email ?? "";
             var defaultAvatar = "default-avatar.jpg";
 

@@ -92,7 +92,7 @@ public static class SeedData
         if (context.GameGenres.Any() || context.GamePlatforms.Any())
             return;
 
-        // helperi za lakše traženje
+        // helpers for easier searching
         Genre G(string name) => context.Genres.First(g => g.Name == name);
         Platform P(string name) => context.Platforms.First(p => p.Name == name);
         Game GameByTitle(string title) => context.Games.First(g => g.Title == title);

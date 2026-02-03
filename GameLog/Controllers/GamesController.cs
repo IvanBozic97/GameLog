@@ -180,6 +180,11 @@ namespace GameLog.Controllers
                 return RedirectToAction("Index", "Profile");
             }
 
+            if (profile.IsBanned)
+            {
+                return Forbid();
+            }
+
             var gameExists = await _context.Games.AnyAsync(g => g.Id == gameId);
             if (!gameExists) return NotFound();
 
@@ -217,6 +222,12 @@ namespace GameLog.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId)) return Challenge();
+
+            var profile = await _context.UserProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+            if (profile?.IsBanned == true)
+            {
+                return Forbid();
+            }
 
             if (string.IsNullOrWhiteSpace(text) || text.Trim().Length < 1)
             {
@@ -272,6 +283,12 @@ namespace GameLog.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId)) return Challenge();
+
+            var profile = await _context.UserProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+            if (profile?.IsBanned == true)
+            {
+                return Forbid();
+            }
 
             var existing = await _context.ReviewReactions
                 .FirstOrDefaultAsync(r => r.ReviewId == reviewId && r.UserId == userId);

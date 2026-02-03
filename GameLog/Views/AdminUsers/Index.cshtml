@@ -1,0 +1,56 @@
+﻿@model IEnumerable<dynamic>
+
+@{
+    ViewData["Title"] = "Manage users";
+}
+
+<h2>Manage users</h2>
+
+<table class="table table-striped mt-3">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Display name</th>
+            <th>Status</th>
+            <th class="text-end">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var u in Model)
+        {
+            <tr>
+                <td>@u.Email</td>
+                <td>@u.DisplayName</td>
+                <td>
+                    @if (u.IsBanned)
+                    {
+                        <span class="badge bg-danger">Banned</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">Active</span>
+                    }
+                </td>
+                <td class="text-end">
+                    <form asp-action="ToggleBan" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="userId" value="@u.Id" />
+
+                        @if (u.IsBanned)
+                        {
+                            <button type="submit" class="btn btn-sm btn-success">
+                                Unban
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                Ban
+                            </button>
+                        }
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

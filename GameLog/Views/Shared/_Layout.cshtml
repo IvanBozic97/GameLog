@@ -54,6 +54,18 @@
                             </li>
                         }
 
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark"
+                                   asp-controller="AdminUsers"
+                                   asp-action="Index">
+                                    Manage users
+                                </a>
+                            </li>
+                        }
+
+
                         @if (User.Identity != null && User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item">

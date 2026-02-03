@@ -15,4 +15,6 @@ public class UserProfile
 
     [Required, MaxLength(30)]
     public string DisplayName { get; set; } = string.Empty;
+    public bool IsBanned { get; set; } = false;
+
 }
